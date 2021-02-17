@@ -4,7 +4,8 @@ Usage:
 ```sh
 run.sh
 ```
-Default directory tree:
+### Default directory tree:
+```
 ── app
     ├── database
     ├── job
@@ -25,3 +26,4 @@ Default directory tree:
     │       ├── auth
     │       └── base.html
     └── upload
+```
