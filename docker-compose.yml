@@ -1,0 +1,21 @@
+version: "3.3"
+services:
+
+  web:
+    build: .
+    ports:
+      - "80:8000"
+    volumes:
+      - ../../app:/app
+    depends_on: 
+      - mariadb
+
+  mariadb:
+    image: mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword19970225
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=user19970225
+      - MYSQL_PASSWORD=password19970225
+    volumes: 
+      - ../database:/var/lib/mysql
