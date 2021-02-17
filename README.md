@@ -1,6 +1,7 @@
 # Web App Template
 Web app template for python frameworks(FastAPI, Flask, Bottle...)
-Usage:
+
+### Usage:
 ```sh
 run.sh
 ```
