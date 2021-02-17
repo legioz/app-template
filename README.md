@@ -1,4 +1,4 @@
-# Web App Template
+# Web App Template │ Structure
 Web app template for python frameworks(FastAPI, Flask, Bottle...)
 
 ### Usage:
