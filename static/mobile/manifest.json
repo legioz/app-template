@@ -1,0 +1,16 @@
+{
+    "name": "Meu-APP",
+    "short_name": "MeuAPP",
+    "theme_color": "#00d1b2",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "https://localhost/",
+    "icons": [
+        {
+            "src": "https://link/to/image.com",
+            "sizes": "1024x1024",
+            "type": "image/png"
+        }
+    ]
+  }

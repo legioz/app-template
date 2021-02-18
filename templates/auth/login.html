@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<title>Login</title>
+{% endblock %}
 
 {% block body %}
     <section class="hero is-primary is-fullheight">
@@ -7,11 +10,11 @@
             <div class="container">
                 <div class="columns is-centered">
                     <div class="column is-5-tablet is-4-desktop is-3-widescreen">
-                        <form action="{{ request.url_for('api:auth_v2:login_for_access_token') }}" class="box">
+                        <form action="{{ request.url_for('login_for_access_token') }}" class="box">
                             <div class="field">
                                 <label for="" class="label">Email</label>
                                 <div class="control has-icons-left">
-                                    <input type="email" placeholder="e.g. bobsmith@gmail.com" class="input" required>
+                                    <input type="email" placeholder="ex. usuario@gmail.com" class="input" required>
                                     <span class="icon is-small is-left">
                                         <i class="fa fa-envelope"></i>
                                     </span>
