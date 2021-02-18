@@ -10,10 +10,10 @@ run.sh
 PROJECT_NAME=''
 SECRET_KEY=''
 DEBUG=True
-user='us3r'
-password='p4ssw0rd'
-host='127.0.0.1'
-database='db'
+MARIADB_USER='us3r'
+MARIADB_PASS='p4ssw0rd'
+MARIADB_HOST='127.0.0.1'
+MARIADB_DB='db'
 ```
 
 ### Default directory tree:
