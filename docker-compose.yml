@@ -15,9 +15,9 @@ services:
     ports: 
       - "3306:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword19970225
+      - MYSQL_ROOT_PASSWORD=r00t
       - MYSQL_DATABASE=db
-      - MYSQL_USER=user
+      - MYSQL_USER=us3r
       - MYSQL_PASSWORD=123456
     volumes: 
       - ../database:/var/lib/mysql
