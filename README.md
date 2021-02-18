@@ -5,26 +5,52 @@ Web app template for python frameworks(FastAPI, Flask, Bottle...)
 ```sh
 run.sh
 ```
+### .env:
+```sh
+PROJECT_NAME=''
+SECRET_KEY=''
+DEBUG=True
+user='us3r'
+password='p4ssw0rd'
+host='127.0.0.1'
+database='db'
+```
+
 ### Default directory tree:
 ```
 ── app
     ├── database
+    ├── redis
     ├── job
     ├── logs
     ├── mail
     ├── src
-    │   ├── certificates
-    │   │   └── inst.crt
-    │   ├── docker-compose.yml
-    │   ├── Dockerfile
-    │   ├── main.py
-    │   ├── requirements.txt
-    │   ├── run.sh
-    │   ├── settings.py
-    │   ├── static
-    │   │   └── bulma.css
-    │   └── templates
-    │       ├── auth
-    │       └── base.html
+    │    ├── api
+    │    │   ├── router.py
+    │    │   └── routes
+    │    │       ├── auth_v1.py
+    │    │       ├── auth_v2.py
+    │    │       └── hello_world.py
+    │    │        
+    │    ├── certificates
+    │    │   └── docker_CA.crt
+    │    ├── core
+    │    │   ├── config.py
+    │    │   ├── schema
+    │    │   │   └── database.sql
+    │    │   └── security.py
+    │    ├── docker-compose.yml
+    │    ├── Dockerfile
+    │    ├── main.py
+    │    ├── README.md
+    │    ├── static
+    │    │   └── style.css
+    │    └── templates
+    │        ├── auth
+    │        │   └── login.html
+    │        ├── base.html
+    │        └── hello_world
+    │            └── hello_world.html
+    │    
     └── upload
 ```

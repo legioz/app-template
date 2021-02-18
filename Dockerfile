@@ -38,6 +38,7 @@ RUN apt-get install -y gcc \
     tree \
     neofetch \
     sqlite3 \
+    libmariadb-dev \
     && apt-get autoremove -y \
     && apt-get autoclean -y
 
@@ -52,8 +53,8 @@ WORKDIR /app/src
 COPY . /app/src
 
 # ! Install institutional certificates
-COPY certificates/institutional_CA.crt /usr/local/share/ca-certificates/
-RUN chmod 777 /usr/local/share/ca-certificates/institutional_CA.crt
+COPY certificates/docker_CA.crt /usr/local/share/ca-certificates/
+RUN chmod 777 /usr/local/share/ca-certificates/docker_CA.crt
 RUN update-ca-certificates
 
 RUN python -m pip install --upgrade pip

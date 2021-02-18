@@ -2,3 +2,13 @@ fastapi
 uvicorn
 python-dotenv
 mariadb
+redis
+fastapi_redis_session
+python-multipart
+passlib
+bcrypt
+PyJWT
+aiofiles
+jinja2
+fastapi_jwt_auth
+itsdangerous
