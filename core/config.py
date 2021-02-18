@@ -6,72 +6,16 @@ from functools import wraps
 from fastapi.templating import Jinja2Templates
 
 templates = Jinja2Templates(directory='templates')
-SECRET_KEY = str(os.environ.get('SECRET_KEY'))
-PROJECT_NAME = str(os.environ.get('PROJECT_NAME'))
-DEBUG = str(os.environ.get('DEBUG'))
 
+load_dotenv(find_dotenv())
 
-class Database:
-    def __init__(self, name, database=None):
-        try:
-            if name == 'database':
-                self._conn = mariadb.connect(
-                    user=os.environ.get('MARIADB_USER'),
-                    password=os.environ.get('MARIADB_PASS'),
-                    host=os.environ.get('MARIADB_HOST'),
-                    database=os.environ.get('MARIADB_DB'),
-                )
-                self._cursor = self._conn.cursor()
-            else:
-                raise()
-        except:
-            print('\n\nErro de conexão com o DB, verifique a classe e as variáveis de conexão!!!\n\n')
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-    @property
-    def connection(self):
-        return self._conn
-
-    @property
-    def cursor(self):
-        return self._cursor
-
-    def commit(self):
-        self.connection.commit()
-
-    def close(self, commit=True):
-        if commit:
-            self.commit()
-        self.connection.close()
-
-    def execute(self, sql, params=None):
-        self.cursor.execute(sql, params or ())
-
-    def fetchall(self):
-        return self.cursor.fetchall()
-
-    def fetchone(self):
-        return self.cursor.fetchone()
-
-    def dictfetchall(self):
-        columns = [col[0] for col in self.cursor.description]
-        return [
-            dict(zip(columns, row))
-            for row in self.cursor.fetchall()
-        ]
-
-    def query_array(self, sql, params=None):
-        self.cursor.execute(sql, params or ())
-        return self.fetchall()
-        
-    def query_dict(self, sql, params=None):
-        self.cursor.execute(sql, params or ())
-        return self.dictfetchall()
+SECRET_KEY = os.getenv('SECRET_KEY')
+PROJECT_NAME = os.getenv('PROJECT_NAME')
+DEBUG = os.getenv('DEBUG')
+MARIADB_USER = os.getenv('MARIADB_USER')
+MARIADB_PASS = os.getenv('MARIADB_PASS')
+MARIADB_HOST = os.getenv('MARIADB_HOST')
+MARIADB_DB = os.getenv('MARIADB_DB')
 
 
 def load_user(user):
