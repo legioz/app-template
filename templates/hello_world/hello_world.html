@@ -13,6 +13,11 @@
 		<p class="subtitle">
 			My first webapp!
 		</p>
+		{% if request.path_params %}
+		<p class="subtitle">
+			Welcome, {{ request.path_params['nome'] }}!
+		</p>
+		{% endif %}
 	</div>
 </section>
 {% endblock %}

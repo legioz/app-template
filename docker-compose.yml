@@ -9,6 +9,8 @@ services:
       - ../../app:/app
     depends_on: 
       - mariadb
+    links: 
+      - mariadb:mariadb
 
   mariadb:
     image: mariadb
@@ -17,7 +19,7 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=r00t
       - MYSQL_DATABASE=db
-      - MYSQL_USER=us3r
+      - MYSQL_USER=user
       - MYSQL_PASSWORD=123456
     volumes: 
       - ../database:/var/lib/mysql

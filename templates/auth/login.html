@@ -10,20 +10,20 @@
             <div class="container">
                 <div class="columns is-centered">
                     <div class="column is-5-tablet is-4-desktop is-3-widescreen">
-                        <form action="{{ request.url_for('login_for_access_token') }}" class="box">
+                        <form action="{{ request.url_for('login_for_access_token') }}" class="box" method="POST">
                             <div class="field">
                                 <label for="" class="label">Email</label>
                                 <div class="control has-icons-left">
-                                    <input type="email" placeholder="ex. usuario@gmail.com" class="input" required>
+                                    <input name="username" type="text" placeholder="username" class="input" required>
                                     <span class="icon is-small is-left">
-                                        <i class="fa fa-envelope"></i>
+                                        <i class="fa fa-user"></i>
                                     </span>
                                 </div>
                             </div>
                             <div class="field">
                                 <label for="" class="label">Password</label>
                                 <div class="control has-icons-left">
-                                    <input type="password" placeholder="*******" class="input" required>
+                                    <input name="password" type="password" placeholder="*******" class="input" required>
                                     <span class="icon is-small is-left">
                                         <i class="fa fa-lock"></i>
                                     </span>
@@ -31,7 +31,7 @@
                             </div>
                             <div class="field">
                                 <label for="" class="checkbox">
-                                    <input type="checkbox">
+                                    <input name="rememberMe" type="checkbox">
                                     Remember me
                                 </label>
                             </div>

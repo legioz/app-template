@@ -2,19 +2,19 @@ from core.config import mariadb, MARIADB_USER, MARIADB_PASS, MARIADB_HOST, MARIA
 
 
 class Connection:
-    def __init__(self, name, database=None):
+    def __init__(self, name='database', database=None):
         try:
             if name == 'database':
                 self._conn = mariadb.connect(
-                    user=MARIADB_USER,
-                    password=MARIADB_PASS,
                     host=MARIADB_HOST,
-                    database=MARIADB_DB
+                    user=MARIADB_USER,
+                    passwd=MARIADB_PASS,
+                    db=MARIADB_DB,
                 )
                 self._cursor = self._conn.cursor()
             else:
-                raise Exception('Conexão inválida')
-        except:
+                raise Exception()
+        except Exception as e:
             print('\n\nErro de conexão com o DB, verifique a classe e as variáveis de conexão!!!\n\n')
 
     def __enter__(self):
@@ -42,6 +42,9 @@ class Connection:
     def execute(self, sql, params=None):
         self.cursor.execute(sql, params or ())
 
+    def executemany(self, sql, params=None):
+        self.cursor.executemany(sql, params or ())
+
     def fetchall(self):
         return self.cursor.fetchall()
 
@@ -55,11 +58,10 @@ class Connection:
             for row in self.cursor.fetchall()
         ]
 
-    def query_array(self, sql, params=None):
+    def query_list(self, sql, params=None):
         self.cursor.execute(sql, params or ())
         return self.fetchall()
-        
+
     def query_dict(self, sql, params=None):
         self.cursor.execute(sql, params or ())
         return self.dictfetchall()
-

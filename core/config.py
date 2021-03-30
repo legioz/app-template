@@ -4,7 +4,7 @@ import os
 from typing import Any
 from functools import wraps
 from fastapi.templating import Jinja2Templates
-
+from fastapi_jwt_auth import AuthJWT
 templates = Jinja2Templates(directory='templates')
 
 load_dotenv(find_dotenv())
