@@ -2,7 +2,7 @@ from core.databases import Connection
 from datetime import datetime, timedelta
 from typing import Dict, Optional
 from core.config import templates, SECRET_KEY
-from fastapi import Depends, APIRouter, HTTPException, Response, Cookie, Form, Request
+from fastapi import Depends, APIRouter, HTTPException, Response, Cookie, Form, Request, Header
 from fastapi.security import OAuth2
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -111,6 +111,9 @@ async def get_current_user(access_token: str=Depends(oauth2_scheme)):
             result = db.query_dict(sql, [access_token])
             if not result:
                 raise HTTPException(status_code=400, detail='Credentials have expired')
+            else:
+                if result[0]['access_token'] != access_token:
+                    credentials_exception
     except JWTError:
         raise credentials_exception
     user = get_user(username=username)
@@ -120,7 +123,7 @@ async def get_current_user(access_token: str=Depends(oauth2_scheme)):
 
 
 @router.post('/token')
-async def login_for_access_token(response: Response, username: str=Form(...), password: str=Form(...)):
+async def login_for_access_token(response: Response, username: str=Form(...), password: str=Form(...), user_agent: Optional[str] = Header(None)):
     user = authenticate_user(username, password)
     if not user:
         raise HTTPException(
@@ -130,7 +133,7 @@ async def login_for_access_token(response: Response, username: str=Form(...), pa
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={'sub': user['username'], 'randkey': create_new_session_key()}, expires_delta=access_token_expires
+        data={'sub': user['username'], 'randkey': create_new_session_key(), 'agent': user_agent}, expires_delta=access_token_expires
     )
     try:
         with Connection() as db:
@@ -161,7 +164,7 @@ async def login_for_access_token(response: Response, username: str=Form(...), pa
 
 
 @router.post('/refresh')
-async def refresh_for_access_token(response: Response, request: Request, user=Depends(get_current_user)):
+async def refresh_for_access_token(response: Response, request: Request, user=Depends(get_current_user), user_agent: Optional[str] = Header(None)):
     credentials_exception = HTTPException(
         status_code=400,
         detail='Could not validate credentials',
@@ -175,7 +178,7 @@ async def refresh_for_access_token(response: Response, request: Request, user=De
         # ! Novo Token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         new_access_token = create_access_token(
-            data={'sub': user['username'], 'randkey': create_new_session_key()}, expires_delta=access_token_expires
+            data={'sub': user['username'], 'randkey': create_new_session_key(), 'agent': user_agent}, expires_delta=access_token_expires
         )
         with Connection() as db:
             sqlUpdateTokenExistente = '''
