@@ -88,30 +88,27 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta]=None):
     return encoded_jwt
 
 
-async def get_current_user(authorization: str=Depends(oauth2_scheme)):
+async def get_current_user(access_token: str=Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=400,
         detail='Could not validate credentials',
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
-        payload = jwt.decode(authorization, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get('sub')
-        session_key: str = payload.get('sesskey')
         utc_now = timegm(datetime.utcnow().utctimetuple())
         if payload['exp'] <= utc_now:
             raise HTTPException(401, detail='Credentials have expired')
-        if username is None or session_key is None:
-            raise credentials_exception
         with Connection() as db:
             sql = '''
                 SELECT * 
                 FROM auth_session 
-                WHERE session_key = %s 
-                    AND expire_date > NOW()  
+                WHERE access_token = %s 
+                    AND expire_date > NOW()
                 LIMIT 1
             ''' 
-            result = db.query_dict(sql, [session_key])
+            result = db.query_dict(sql, [access_token])
             if not result:
                 raise HTTPException(status_code=400, detail='Credentials have expired')
     except JWTError:
@@ -132,9 +129,8 @@ async def login_for_access_token(response: Response, username: str=Form(...), pa
             headers={'WWW-Authenticate': 'Bearer'},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    session_key = create_new_session_key()
     access_token = create_access_token(
-        data={'sub': user['username'], 'sesskey': session_key}, expires_delta=access_token_expires
+        data={'sub': user['username'], 'randkey': create_new_session_key()}, expires_delta=access_token_expires
     )
     try:
         with Connection() as db:
@@ -151,13 +147,13 @@ async def login_for_access_token(response: Response, username: str=Form(...), pa
                 sqlUpdateTokenExistente = '''
                     UPDATE auth_session
                     SET
-                    session_key = %s,
+                    access_token = %s,
                     expire_date = NOW() + INTERVAL %s MINUTE
                     WHERE user_id = %s
                 '''
-                db.execute(sqlUpdateTokenExistente, [session_key, ACCESS_TOKEN_EXPIRE_MINUTES, user['id']])
+                db.execute(sqlUpdateTokenExistente, [access_token, ACCESS_TOKEN_EXPIRE_MINUTES, user['id']])
             else:
-                db.execute('INSERT INTO auth_session (user_id, session_key, expire_date) VALUES (%s, %s, NOW() + INTERVAL %s MINUTE)', [user['id'], session_key, ACCESS_TOKEN_EXPIRE_MINUTES])
+                db.execute('INSERT INTO auth_session (user_id, access_token, expire_date) VALUES (%s, %s, NOW() + INTERVAL %s MINUTE)', [user['id'], access_token, ACCESS_TOKEN_EXPIRE_MINUTES])
     except Exception:
         raise HTTPException(status_code=500,detail='Insert Login Error')
     response.set_cookie('access_token', access_token, httponly=True)
@@ -176,25 +172,20 @@ async def refresh_for_access_token(response: Response, request: Request, user=De
         access_token = request.cookies.get('access_token')
         if not access_token:
             raise credentials_exception
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
-        session_key: str = payload.get('sesskey')
         # ! Novo Token
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        new_session_key = create_new_session_key()
         new_access_token = create_access_token(
-            data={'sub': user['username'], 'sesskey': new_session_key}, expires_delta=access_token_expires
+            data={'sub': user['username'], 'randkey': create_new_session_key()}, expires_delta=access_token_expires
         )
-        if session_key is None:
-            raise credentials_exception
         with Connection() as db:
             sqlUpdateTokenExistente = '''
                     UPDATE auth_session
                     SET
-                    session_key = %s,
+                    access_token = %s,
                     expire_date = NOW() + INTERVAL %s MINUTE
                     WHERE user_id = %s
                 '''
-            db.execute(sqlUpdateTokenExistente, [new_session_key, ACCESS_TOKEN_EXPIRE_MINUTES, user['id']])
+            db.execute(sqlUpdateTokenExistente, [new_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, user['id']])
     except JWTError:
         raise credentials_exception
     response.delete_cookie('access_token')
@@ -214,11 +205,8 @@ async def logout(response: Response, request: Request):
         if not access_token:
             raise credentials_exception
         payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
-        session_key: str = payload.get('sesskey')
-        if session_key is None:
-            raise credentials_exception
         with Connection() as db:
-            db.execute('DELETE FROM auth_session WHERE session_key = %s', [session_key])
+            db.execute('DELETE FROM auth_session WHERE access_token = %s', [access_token])
     except JWTError:
         raise credentials_exception
     response.delete_cookie('access_token')
