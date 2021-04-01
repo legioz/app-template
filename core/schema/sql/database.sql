@@ -53,7 +53,7 @@ CREATE TABLE auth_user_permission (
 CREATE TABLE auth_session (
   id INTEGER NOT NULL AUTO_INCREMENT,
   user_id INTEGER NOT NULL UNIQUE,
-  session_key VARCHAR(70) NOT NULL UNIQUE,
+  access_token LONGTEXT NOT NULL UNIQUE
   expire_date DATETIME NOT NULL,
   PRIMARY KEY(id),
   FOREIGN KEY(user_id) REFERENCES auth_user(id)
