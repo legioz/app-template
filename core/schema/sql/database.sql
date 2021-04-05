@@ -59,6 +59,14 @@ CREATE TABLE auth_session (
   FOREIGN KEY(user_id) REFERENCES auth_user(id)
 );
 
+CREATE TABLE password_reset (
+  id INTEGER NOT NULL AUTO_INCREMENT,
+  user_id INTEGER NOT NULL,
+  reset_key VARCHAR(200) NOT NULL UNIQUE,
+  expire_date DATETIME NOT NULL,
+  PRIMARY KEY(id),
+  FOREIGN KEY(user_id) REFERENCES auth_user(id)
+);
 
 INSERT INTO auth_user (
   username,
