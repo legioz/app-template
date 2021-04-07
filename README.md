@@ -11,6 +11,7 @@ Web app template for python frameworks(FastAPI, Flask, Bottle...)
 * Start the stack with Docker Compose:
 
 ```bash
+docker-compose build
 docker-compose up -d
 ```
 
