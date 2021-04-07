@@ -1,18 +1,36 @@
 version: "3.3"
 services:
 
-  web:
-    build: .
-    ports:
-      - "80:8000"
-    volumes:
-      - ../../app:/app
+  backend:
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     depends_on: 
-      - mariadb
-    links: 
-      - mariadb:mariadb
+      - db
+    env_file:
+      - .env
+    container_name: backend
+    command: sh -c "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - ./backend:/backend
+    expose:
+      - 8000
+    # ports: # Comentar PORTS caso executar com o frontend: http://localhost:8000/docs
+    #   - "8000:8000"
 
-  mariadb:
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/:/frontend
+    ports:
+      - 80:80
+
+  db:
+    container_name: database
     image: mariadb
     ports: 
       - "3306:3306"

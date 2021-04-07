@@ -53,7 +53,7 @@ WORKDIR /app/src
 COPY . /app/src
 
 # ! Install institutional certificates
-COPY certificates/docker_CA.crt /usr/local/share/ca-certificates/
+COPY ./certificates/docker_CA.crt /usr/local/share/ca-certificates/
 RUN chmod 777 /usr/local/share/ca-certificates/docker_CA.crt
 RUN update-ca-certificates
 
@@ -62,4 +62,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 8000
 
-CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
