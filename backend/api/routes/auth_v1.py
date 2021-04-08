@@ -161,11 +161,7 @@ async def logout(current_user=Depends(get_current_user)):
     '''
     Delete session on database. 
     '''
-    credentials_exception = HTTPException(
-        status_code=400,
-        detail='Could not validate credentials',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
+    credentials_exception = HTTPException(status_code=400, detail='Could not validate credentials', headers={'WWW-Authenticate': 'Bearer'})
     try:
         with Connection() as db:
             db.execute('DELETE FROM auth_session WHERE user_id = %s', [current_user['id']])
