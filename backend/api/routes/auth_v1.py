@@ -1,51 +1,20 @@
-from core.databases import Connection
 from datetime import datetime, timedelta
-from typing import Dict, Optional
-from core.config import templates, SECRET_KEY
-from fastapi import Depends, APIRouter, HTTPException, Response, Cookie, Form, Request, Header
-from fastapi.security import OAuth2
+from typing import Optional
+from fastapi import Depends, APIRouter, HTTPException, status, Request
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from core.databases import Connection
+from core.config import SECRET_KEY
 import secrets
 from passlib import pwd
-from fastapi.openapi.models import OAuthFlows as OAuthFlowsModel
-from calendar import timegm
-from datetime import datetime
 
 router = APIRouter()
 
-
-class OAuth2PasswordBearerWithCookie(OAuth2):
-    def __init__(
-        self,
-        tokenUrl: str,
-        scheme_name: Optional[str] = None,
-        scopes: Optional[Dict[str, str]] = None,
-        auto_error: bool = True,
-    ):
-        if not scopes:
-            scopes = {}
-        flows = OAuthFlowsModel(password={"tokenUrl": tokenUrl, "scopes": scopes})
-        super().__init__(flows=flows, scheme_name=scheme_name, auto_error=auto_error)
-    
-    async def __call__(self, request: Request) -> Optional[str]:
-        authorization: str = request.cookies.get("access_token")
-        if not authorization:
-            if self.auto_error:
-                raise HTTPException(
-                    status_code=401,
-                    detail="Not authenticated",
-                    headers={"WWW-Authenticate": "Bearer"},
-                )
-            else:
-                return None
-        return authorization
-
-
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 20
-oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl='/token', scheme_name='bearer')
+ALGORITHM = 'HS512'
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 10
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/api/auth/token')
 
 
 def verify_password(plain_password, hashed_password):
@@ -54,6 +23,10 @@ def verify_password(plain_password, hashed_password):
 
 def create_new_session_key():
     return secrets.token_urlsafe(20) + pwd.genword(entropy=100, length=20)
+
+
+def get_password_hash(password):
+    return pwd_context.hash(password)
 
 
 def get_user(username: str):
@@ -69,7 +42,7 @@ def authenticate_user(username: str, password: str):
     try:
         user = get_user(username)
     except Exception as e:
-        raise HTTPException(status_code=500,detail='Database connection error')
+        raise HTTPException(status_code=500, detail='Database connection error')
     if not user:
         return False
     if not verify_password(password, user['password']):
@@ -83,23 +56,16 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta]=None):
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({'exp': expire})
+    to_encode.update({'exp': expire, 'iat': datetime.utcnow()})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
-async def get_current_user(access_token: str=Depends(oauth2_scheme)):
-    credentials_exception = HTTPException(
-        status_code=400,
-        detail='Could not validate credentials',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
+async def get_current_user(token: str=Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(status_code=401, detail='Could not validate credentials', headers={'WWW-Authenticate': 'Bearer'})
     try:
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get('sub')
-        utc_now = timegm(datetime.utcnow().utctimetuple())
-        if payload['exp'] <= utc_now:
-            raise HTTPException(401, detail='Credentials have expired')
         with Connection() as db:
             sql = '''
                 SELECT * 
@@ -108,33 +74,23 @@ async def get_current_user(access_token: str=Depends(oauth2_scheme)):
                     AND expire_date > NOW()
                 LIMIT 1
             ''' 
-            result = db.query_dict(sql, [access_token])
+            result = db.query_dict(sql, [token])
             if not result:
-                raise HTTPException(status_code=400, detail='Credentials have expired')
+                raise credentials_exception
             else:
-                if result[0]['access_token'] != access_token:
-                    credentials_exception
-    except JWTError:
+                if result[0]['access_token'] != token:
+                    raise credentials_exception
+        if username is None:
+            raise credentials_exception
+    except Exception:
         raise credentials_exception
-    user = get_user(username=username)
+    user = get_user(username)
     if user is None:
         raise credentials_exception
     return user
 
 
-@router.post('/token')
-async def login_for_access_token(response: Response, username: str=Form(...), password: str=Form(...), user_agent: Optional[str] = Header(None)):
-    user = authenticate_user(username, password)
-    if not user:
-        raise HTTPException(
-            status_code=400,
-            detail='Incorrect username or password',
-            headers={'WWW-Authenticate': 'Bearer'},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={'sub': user['username'], 'randkey': create_new_session_key(), 'agent': user_agent}, expires_delta=access_token_expires
-    )
+async def save_session(user, access_token):
     try:
         with Connection() as db:
             db.execute('UPDATE auth_user SET last_login = NOW() WHERE id = %s', [user['id']])
@@ -156,66 +112,71 @@ async def login_for_access_token(response: Response, username: str=Form(...), pa
                 '''
                 db.execute(sqlUpdateTokenExistente, [access_token, ACCESS_TOKEN_EXPIRE_MINUTES, user['id']])
             else:
-                db.execute('INSERT INTO auth_session (user_id, access_token, expire_date) VALUES (%s, %s, NOW() + INTERVAL %s MINUTE)', [user['id'], access_token, ACCESS_TOKEN_EXPIRE_MINUTES])
-    except Exception:
-        raise HTTPException(status_code=500,detail='Insert Login Error')
-    response.set_cookie('access_token', access_token, httponly=True)
-    return {'ok': True}
-
-
-@router.post('/refresh')
-async def refresh_for_access_token(response: Response, request: Request, user=Depends(get_current_user), user_agent: Optional[str] = Header(None)):
-    credentials_exception = HTTPException(
-        status_code=400,
-        detail='Could not validate credentials',
-        headers={'WWW-Authenticate': 'Bearer'},
-    )
-    try:
-        # ! Velho Token
-        access_token = request.cookies.get('access_token')
-        if not access_token:
-            raise credentials_exception
-        # ! Novo Token
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        new_access_token = create_access_token(
-            data={'sub': user['username'], 'randkey': create_new_session_key(), 'agent': user_agent}, expires_delta=access_token_expires
-        )
-        with Connection() as db:
-            sqlUpdateTokenExistente = '''
-                    UPDATE auth_session
-                    SET
-                    access_token = %s,
-                    expire_date = NOW() + INTERVAL %s MINUTE
-                    WHERE user_id = %s
+                sqlInsertSession = '''
+                    INSERT INTO auth_session 
+                    (user_id, access_token, expire_date) VALUES 
+                    (%s, %s, NOW() + INTERVAL %s MINUTE)
                 '''
-            db.execute(sqlUpdateTokenExistente, [new_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, user['id']])
-    except JWTError:
-        raise credentials_exception
-    response.delete_cookie('access_token')
-    response.set_cookie('access_token', new_access_token, httponly=True)
-    return {'ok': True}
+                db.execute(sqlInsertSession, [user['id'], access_token, ACCESS_TOKEN_EXPIRE_MINUTES])
+    except Exception:
+        raise HTTPException(status_code=500, detail='Internal server error while connecting')
 
 
-@router.delete('/logout')
-async def logout(response: Response, request: Request):
+@router.post('/token')
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm=Depends()):
+    '''
+    Create **access token** and save session to database. 
+    '''
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail='Incorrect username or password', headers={'WWW-Authenticate': 'Bearer'})
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={'sub': user['username'], 'randkey': create_new_session_key()}, 
+        expires_delta=access_token_expires
+    )
+    await save_session(user, access_token)
+    return {'access_token': access_token, 'token_type': 'bearer'}
+
+
+@router.put('/token/refresh')
+async def refresh_for_access_token(current_user=Depends(get_current_user)):
+    '''
+    Update **access token** on headers and update session on database. 
+    '''
+    user = current_user
+    if not user:
+        raise HTTPException(status_code=401, detail='Incorrect username or password', headers={'WWW-Authenticate': 'Bearer'})
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={'sub': user['username'], 'randkey': create_new_session_key()}, 
+        expires_delta=access_token_expires
+    )
+    save_session(user, access_token)
+    return {'access_token': access_token, 'token_type': 'bearer'}
+
+
+@router.delete('/logout', name='auth_v1:logout')
+async def logout(current_user=Depends(get_current_user)):
+    '''
+    Delete session on database. 
+    '''
     credentials_exception = HTTPException(
         status_code=400,
         detail='Could not validate credentials',
         headers={'WWW-Authenticate': 'Bearer'},
     )
     try:
-        access_token = request.cookies.get('access_token')
-        if not access_token:
-            raise credentials_exception
-        payload = jwt.decode(access_token, SECRET_KEY, algorithms=[ALGORITHM])
         with Connection() as db:
-            db.execute('DELETE FROM auth_session WHERE access_token = %s', [access_token])
+            db.execute('DELETE FROM auth_session WHERE user_id = %s', [current_user['id']])
     except JWTError:
         raise credentials_exception
-    response.delete_cookie('access_token')
     return {'ok': True}
 
 
-@router.get('/users/me/')
+@router.get("/users/me/")
 async def read_users_me(current_user=Depends(get_current_user)):
+    '''
+    Return current user info.
+    '''
     return current_user
