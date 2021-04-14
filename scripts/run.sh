@@ -1,16 +1,16 @@
 #!/usr/bin/sh
 
-echo "Validando diretório pai..."
-if ! [ $(basename $(dirname "$PWD")) = "app" ]; then
-  echo  "Diretório pai deve ser = app/" >&2
-  exit 1
-fi
+# echo "Validando diretório pai..."
+# if ! [ $(basename $(dirname "$PWD")) = "app" ]; then
+#   echo  "Diretório pai deve ser = app/" >&2
+#   exit 1
+# fi
 
-echo "Validando diretório pai..."
-if ! [ $(basename $"$PWD") = "src" ]; then
-  echo  "Diretório deve ser = app/src" >&2
-  exit 1
-fi
+# echo "Validando diretório pai..."
+# if ! [ $(basename $"$PWD") = "src" ]; then
+#   echo  "Diretório deve ser = app/src" >&2
+#   exit 1
+# fi
 
 echo 
 echo "Diretório atual: $(pwd)"

@@ -42,15 +42,17 @@ RUN apt-get install -y gcc \
     && apt-get autoremove -y \
     && apt-get autoclean -y
 
-RUN mkdir -p /app/src
-RUN mkdir -p /app/mail
-RUN mkdir -p /app/job
-RUN mkdir -p /app/upload
-RUN mkdir -p /app/logs
 
-WORKDIR /app/src
+RUN mkdir -p /home/src
+WORKDIR /home/src/
 
-COPY . /app/src
+RUN mkdir -p /home/mail
+RUN mkdir -p /home/job
+RUN mkdir -p /home/upload
+RUN mkdir -p /home/logs
+
+
+COPY ./ /home/src
 
 # ! Install institutional certificates
 COPY ./certificates/docker_CA.crt /usr/local/share/ca-certificates/
@@ -61,5 +63,6 @@ RUN python -m pip install --upgrade pip
 RUN pip install -r requirements.txt 
 
 EXPOSE 8000
+EXPOSE 80
 
-# CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
