@@ -8,6 +8,13 @@ Web app template for python frameworks(FastAPI, Flask, Bottle...)
 
 ## Backend local development
 
+
+* First Time Build:
+```bash
+cd scripts/
+./first-build.sh
+```
+
 * Start the stack with Docker Compose:
 
 ```bash
@@ -79,41 +86,70 @@ VUE_APP_ENV=development
 
 ### Default directory tree:
 ```
-── app
-    ├── database
-    ├── redis
-    ├── job
-    ├── logs
-    ├── mail
-    ├── src
-    │    ├── api
-    │    │   ├── router.py
-    │    │   └── routes
-    │    │       ├── auth_v1.py
-    │    │       ├── auth_v2.py
-    │    │       └── hello_world.py
-    │    │        
-    │    ├── certificates
-    │    │   └── docker_CA.crt
-    │    ├── core
-    │    │   ├── config.py
-    │    │   ├── schema
-    │    │   │   └── database.sql
-    │    │   └── security.py
-    │    ├── docker-compose.yml
-    │    ├── Dockerfile
-    │    ├── main.py
-    │    ├── README.md
-    │    ├── static
-    │    │   └── style.css
-    │    └── templates
-    │        ├── auth
-    │        │   └── login.html
-    │        ├── base.html
-    │        └── hello_world
-    │            └── hello_world.html
-    │    
-    └── upload
+app
+├── backend('src')
+│   ├── api
+│   │   ├── router.py
+│   │   └── routes
+│   │       ├── auth_v1.py
+│   ├── app
+│   │   ├── router.py
+│   │   └── routes
+│   │       └── main.py
+│   ├── certificates
+│   │   └── docker_CA.crt
+│   ├── core
+│   │   ├── config.py
+│   │   ├── databases.py
+│   │   ├── schema
+│   │   │   ├── json
+│   │   │   │   └── countries-states-cities.json
+│   │   │   └── sql
+│   │   │       └── database.sql
+│   │   └── security.py
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── requirements.txt
+│   ├── static
+│   │   ├── css
+│   │   │   └── style.css
+│   │   └── mobile
+│   │       └── manifest.json
+│   └── templates
+│
+│
+│
+├── frontend
+│   ├── babel.config.js
+│   ├── Dockerfile
+│   ├── nginx-backend-not-found.conf
+│   ├── nginx.conf
+│   ├── package.json
+│   ├── public
+│   │   ├── favicon.ico
+│   │   ├── img
+│   │   │   └── icons
+│   │   ├── index.html
+│   │   ├── manifest.json
+│   │   └── robots.txt
+│   ├── README.md
+│   ├── src
+│   │   ├── App.vue
+│   │   ├── assets
+│   │   │   └── logo.png
+│   │   ├── components
+│   │   │   └── HelloWorld.vue
+│   │   ├── config.js
+│   │   └── main.js
+│   └── tests
+│       └── unit
+│           └── upload-button.spec.ts
+│
+│
+├── docker-compose.yml
+├── README.md
+└── scripts
+    └── first-build.sh
 ```
 
 ### Development URLs
