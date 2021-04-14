@@ -29,16 +29,16 @@ fi
 echo "Dependências OK."
 
 echo "Criando diretórios e arquivos necessários"
-mkdir -p ../mail
-mkdir -p ../job
-mkdir -p ../upload
-mkdir -p ../logs
-mkdir -p ../database
-touch .env
+mkdir -p ../../mail
+mkdir -p ../../job
+mkdir -p ../../upload
+mkdir -p ../../logs
+mkdir -p ../../database
+touch ../backend/.env
 
 echo "------------------------------"
 echo "Iniciando build dos containers"
 echo ">docker-compose build" 
 docker-compose build
 echo "containers construidos com sucesso!"
-docker-compose up
+# docker-compose up

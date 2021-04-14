@@ -9,11 +9,11 @@ services:
     depends_on: 
       - db
     env_file:
-      - .env
+      - backend/.env
     container_name: backend
     command: sh -c "uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
-      - ./backend:/backend
+      - ./backend:/home/src/
     # expose:
     #   - 8000
     # Comentar PORTS caso executar com o frontend: http://localhost:8000/docs

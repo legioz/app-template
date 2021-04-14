@@ -1,14 +1,17 @@
 from fastapi import FastAPI, Request
-from core.config import PROJECT_NAME, DEBUG
 from api.router import router as api_router
 from app.router import router as app_router
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
-from core.config import SECRET_KEY
+from core.config import (PROJECT_NAME, DEBUG,
+                        SECRET_KEY, OPENAPI_URL,
+                        DOCS_URL, REDOCS_URL)
 
-VERSION = '20210218'
+VERSION = '0.0.1'
 
-app = FastAPI(title=PROJECT_NAME, debug=DEBUG, version=VERSION)
+app = FastAPI(title=PROJECT_NAME, debug=DEBUG, 
+            version=VERSION, docs_url=DOCS_URL,
+            redoc_url=REDOCS_URL, open_api_url=OPENAPI_URL)
 
 app.add_middleware(SessionMiddleware, secret_key=SECRET_KEY)
 

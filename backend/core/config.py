@@ -9,14 +9,16 @@ templates = Jinja2Templates(directory='templates')
 
 load_dotenv(find_dotenv())
 
-SECRET_KEY = os.getenv('SECRET_KEY')
-PROJECT_NAME = os.getenv('PROJECT_NAME')
-DEBUG = os.getenv('DEBUG')
-MARIADB_USER = os.getenv('MARIADB_USER')
-MARIADB_PASS = os.getenv('MARIADB_PASS')
-MARIADB_HOST = os.getenv('MARIADB_HOST')
-MARIADB_DB = os.getenv('MARIADB_DB')
-
+SECRET_KEY = os.getenv('SECRET_KEY', None)
+PROJECT_NAME = os.getenv('PROJECT_NAME', None)
+DEBUG = os.getenv('DEBUG', None)
+MARIADB_USER = os.getenv('MARIADB_USER', None)
+MARIADB_PASS = os.getenv('MARIADB_PASS', None)
+MARIADB_HOST = os.getenv('MARIADB_HOST', None)
+MARIADB_DB = os.getenv('MARIADB_DB', None)
+OPENAPI_URL = os.getenv('OPENAPI_URL', None)
+DOCS_URL = os.getenv('DOCS_URL', None)
+REDOCS_URL = os.getenv('REDOCS_URL', None)
 
 def load_user(user):
     return user

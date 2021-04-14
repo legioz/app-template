@@ -49,18 +49,21 @@ One way to do it could be to add each environment variable to your CI/CD system,
 
 ```sh
 DEBUG=True
-PROJECT_NAME=''
-SECRET_KEY=''
+OPENAPI_URL=/openapi.json
+DOCS_URL=/docs
+REDOCS_URL=/redoc
+PROJECT_NAME=
+SECRET_KEY=
 
 MARIADB_USER='us3r'
 MARIADB_PASS='123456'
 MARIADB_HOST='db'
 MARIADB_DB='db'
 
-SMTP_HOST=''
-SMTP_USER=''
-SMTP_PASSWORD=''
-SMTP_EMAIL=''
+SMTP_HOST=
+SMTP_USER=
+SMTP_PASSWORD=
+SMTP_EMAIL=
 SMTP_TLS=True
 SMTP_PORT=587
 
