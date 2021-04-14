@@ -262,3 +262,5 @@ modules-enabled
 
 # Distribution files
 *.dpkg-dist
+
+.vscode
